@@ -1,0 +1,149 @@
+################### Filebeat Configuration Example #########################
+
+############################# Filebeat ######################################
+filebeat:
+  # List of prospectors to fetch data.
+  prospectors:
+    # Each - is a prospector. Below are the prospector specific configurations
+    -
+      paths:
+        - /var/log/messages
+        - /var/log/secure
+        - /var/log/iptables.log
+      input_type: log
+      fields:
+        document_type: sys_log
+    -
+      paths:
+        - /var/log/audit/audit.log
+      input_type: log
+      multiline:
+        pattern: '^type=(SYSCALL|USER|CRYPTO|CRED)'
+        negate: true
+        match: after
+      fields:
+        document_type: auditd_log
+    -
+      paths:
+        - "/var/log/httpd/*access.log"
+        - /var/log/httpd/access_log
+        - "/var/log/httpd/*error.log"
+        - /var/log/httpd/error_log
+      input_type: log
+      fields:
+        document_type: apache_log
+    -
+      paths:
+        - /var/log/clamav/clamd.log
+        - /var/log/clamd.scan
+        - "/mnt/glusterfs/docker/volumes/fivium-clamav/logs/*/clamd.log"
+      input_type: log
+      fields:
+        document_type: clamav_log
+    -
+      paths:
+        - /var/log/clamav/freshclam.log
+      input_type: log
+      multiline:
+        pattern: '^ClamAV update process'
+        negate: true
+        match: after
+      fields:
+        document_type: clamav_log
+    -
+      paths:
+        - /var/log/maillog
+      input_type: log
+      fields:
+        document_type: mail_log
+    -
+      paths:
+        - /opt/dmda/logs/dmda.log
+        - "/mnt/glusterfs/docker/volumes/fivium-dmda/logs/*/dmda.log"
+      input_type: log
+      multiline:
+        pattern: '^(\D{3} \d{2}, \d{4} \d{2}:\d{2}:\d{2})|(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})|(\d{2}-\D{3}-\d{4} \d{2}:\d{2}(:\d{2})?)'
+        negate: true
+        match: after
+      fields:
+        document_type: dmda_log
+    -
+      paths:
+        - "/mnt/glusterfs/docker/volumes/fivium-document-converter/logs/*/DocConverter.log"
+      input_type: log
+      multiline:
+        pattern: '^(\D{3} \d{2}, \d{4} \d{2}:\d{2}:\d{2})|(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})|(\d{2}-\D{3}-\d{4} \d{2}:\d{2}(:\d{2})?)'
+        negate: true
+        match: after
+      fields:
+        document_type: docconverter_log
+    -
+      paths:
+        - "/mnt/glusterfs/docker/volumes/fivium-redactor/logs/*/redactor.log"
+      input_type: log
+      multiline:
+        pattern: '^(\D{3} \d{2}, \d{4} \d{2}:\d{2}:\d{2})|(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})|(\d{2}-\D{3}-\d{4} \d{2}:\d{2}(:\d{2})?)'
+        negate: true
+        match: after
+      fields:
+        document_type: redactor_log
+    -
+      paths:
+        - /opt/tomcat8/instances/*/logs/catalina.out
+        - /opt/tomcat8/instances/*/logs/catalina.*.log
+        - /opt/tomcat8/instances/*/logs/localhost.*.log
+        - /opt/tomcat7/instances/*/logs/catalina.out
+        - /opt/tomcat7/instances/*/logs/catalina.*.log
+        - /opt/tomcat7/instances/*/logs/localhost.*.log
+      input_type: log
+      multiline:
+        pattern: '^\d{4}-\d{2}-\d{2}(T| )\d{2}:\d{2}:\d{2}(\.|\,)\d{3}(\+\d{4})?|^\d{2}(-|\/)\D{3}(-|\/)\d{4} \d{2}:\d{2}:\d{2}(,\d{3})?|^\w{3} \d{2}, \d{4} \d{1,2}:\d{2}:\d{2} (AM|PM)|^\d{7}\.\d{3}:'
+        negate: true
+        match: after
+      fields:
+        document_type: tomcat_log
+    -
+      paths:
+        - "/oracle/diag/rdbms/*/*/trace/alert_*.log"
+      input_type: log
+      multiline:
+        pattern: '^\D{3} \D{3} \d{2} \d{2}:\d{2}:\d{2} \d{4}$'
+        negate: true
+        match: after
+      fields:
+        document_type: oracle_alert_log
+    -
+      paths:
+        - "/oracle/diag/tnslsnr/*/listener/trace/listener.log"
+      input_type: log
+      fields:
+        document_type: oracle_listener_log
+    -
+      paths:
+        - "/var/log/haproxy.log"
+      input_type: log
+      fields:
+        document_type: haproxy_log
+
+  registry_file: /var/lib/filebeat/registry
+
+# Multiple outputs may be used.
+output:
+  ### Logstash as output
+  logstash:
+    # The Logstash hosts
+    hosts: ["techlab-lemms1.fivium.local:5044"]
+    bulk_max_size: 1024
+    # configure index prefix name
+    index: filebeat
+
+shipper:
+
+logging:
+  # To enable logging to files, to_files option has to be set to true
+  to_files: true
+  to_syslog: false
+  files:
+    path: /var/log/filebeat
+    name: filebeat.log
+    rotateeverybytes: 10485760 # = 10MB
