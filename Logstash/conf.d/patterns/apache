@@ -1,0 +1,15 @@
+COMMONAPACHELOG1 %{IPORHOST:apache_clientip} %{USER:apache_identity} %{USER:apache_auth} \[%{HTTPDATE:apache_timestamp}\] "(?:%{WORD:apache_verb} %{NOTSPACE:apache_request}(?: HTTP/%{NUMBER:apache_httpversion})?|%{DATA:apache_rawrequest})" %{NUMBER:apache_response} (?:%{NUMBER:apache_bytes}|-)
+
+COMBINEDAPACHELOG1 %{COMMONAPACHELOG1} %{QS:apache_referrer} %{QS:apache_agent}
+
+COMBINEDXFFAPACHELOG %{IPORHOST:apache_clientip} %{QUOTEDSTRING:apache_xforwardedfor} %{USER:apache_identity} %{USER:apache_auth} \[%{HTTPDATE:apache_timestamp}\] "(?:%{WORD:apache_verb} %{NOTSPACE:apache_request}(?: HTTP/%{NUMBER:apache_httpversion})?|%{DATA:apache_rawrequest})" %{NUMBER:apache_response} (?:%{NUMBER:apache_bytes}|-) %{QS:apache_referrer} %{QS:apache_agent}
+
+COMBINEDXFFAPACHELOG2 %{IPORHOST:apache_clientip} %{QUOTEDSTRING:apache_xforwardedfor} %{USER:apache_identity} %{USER:apache_auth} \[%{HTTPDATE:apache_timestamp}\] "%{APACHE_HTTPHOST:apache_httphost}(/..)?|-" "(?:%{WORD:apache_verb} %{NOTSPACE:apache_request}(?: HTTP/%{NUMBER:apache_httpversion})?|%{DATA:apache_rawrequest})" %{NUMBER:apache_response} (?:%{NUMBER:apache_bytes}|-)( %{NUMBER:apache_responsetime})? %{QS:apache_referrer} %{QS:apache_agent}
+
+COMBINEDXFFXSSLAPACHELOG %{IPORHOST:apache_clientip} %{QS:apache_xforwardedfor} %{QS:apache_xclientip} %{USER:apache_identity} %{USER:apache_auth} \[%{HTTPDATE:apache_timestamp}\] "(%{APACHE_HTTPHOST:apache_httphost}(/..)?|-)" "(?:%{WORD:apache_verb} %{NOTSPACE:apache_request}(?: HTTP/%{NUMBER:apache_httpversion})?|%{DATA:apache_rawrequest})" %{NUMBER:apache_response} (?:%{NUMBER:apache_bytes}|-) (%{NUMBER:apache_responsetime}|-)? %{QS:apache_xsslprotocol} %{QS:apache_xsslcipher} %{QS:apache_referrer} %{QS:apache_agent}
+
+ERRORAPACHELOG \[%{APACHEERR_TIMESTAMP:apache_err_timestamp}\] \[(?:%{DATA:apache_error_type}){0,1}:?%{LOGLEVEL:apache_loglevel}\]%{SPACE}(?:\[pid %{INT:apache_pid}\]){0,1}%{SPACE}(?:\[client %{IP:apache_clientip}(:%{INT:apache_clientport})?\]){0,1} %{GREEDYDATA:apache_error_message}
+
+APACHEERR_TIMESTAMP %{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{YEAR}
+
+APACHE_HTTPHOST %{HOSTNAME}(:%{INT})?
