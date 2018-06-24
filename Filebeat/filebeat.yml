@@ -132,7 +132,7 @@ output:
   ### Logstash as output
   logstash:
     # The Logstash hosts
-    hosts: ["techlab-lemms1.fivium.local:5044"]
+    hosts: ["logstash-server:5044"]
     bulk_max_size: 1024
     # configure index prefix name
     index: filebeat
